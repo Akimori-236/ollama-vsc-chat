@@ -1,0 +1,20 @@
+
+# DeepSeek VSC Chat
+
+## Prerequisites
+
+* Ollama
+  * You can download Ollama at [https://ollama.com/download](https://ollama.com/download).
+  * After installing, run `ollama run deepseek-r1`.
+
+## Usage
+
+1. Run `vsce package` to generate `.vsix` file
+2. Install via `Extensions` > `Install from VSIX...` > Select .vsix file
+3. Use `ctrl+shift+p` and select "Start DeepSeek Chat"
+
+## Versions
+
+* 0.0.1
+
+  * First version
