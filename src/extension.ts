@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import ollama from 'ollama';
-const { marked } = require("marked");
+import { marked } from 'marked';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -34,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 			if (message.command === "chat") {
 				var thinkingText: string = "";
-				responseText += "<hr/>";
+				responseText += "\n --- \n";
 				const userPrompt = message.text;
 
 				try {
@@ -56,11 +56,11 @@ export function activate(context: vscode.ExtensionContext) {
 						}
 						if (isThinking) {
 							thinkingText += part.message.content;
-							thinkingText = thinkingText?.trim();
+							thinkingText = thinkingText;
 							panel.webview.postMessage({ command: "chatThinking", text: thinkingText });
 						} else {
 							responseText += part.message.content;
-							responseText = responseText?.trim();
+							responseText = responseText;
 							context.workspaceState.update("chatResponse", responseText);
 							postResponse(responseText);
 						}
@@ -82,9 +82,14 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		});
 
-		function postResponse(responseText: string) {
-			responseText = responseText.replace(/([.:])(?!\s)/g, '$1 ');
-			panel.webview.postMessage({ command: "chatResponse", text: marked(responseText) });
+		async function postResponse(responseText: string) {
+			let processedResponse = responseText
+				.replace(/\\\[/g, '$$$')
+				.replace(/\\\]/g, '$$$');
+				// .replace(/\\\(/g, '\\\(')
+				// .replace(/\\\)/g, '\\\)');
+			const htmlResponse = await marked(processedResponse);
+			panel.webview.postMessage({ command: "chatResponse", text: htmlResponse });
 		}
 	});
 
@@ -185,6 +190,7 @@ function getWebviewContent(): string {
 
 			// Reset history
 			document.getElementById("resetBtnId").addEventListener("click", ()=>{
+				document.getElementById("thinkingId").innerHTML = "";
 				vscode.postMessage({command: 'chatReset', text:''})
 			})
 
@@ -203,6 +209,7 @@ function getWebviewContent(): string {
 				}
 				// parse Latex with MathJax
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, responseContainer]);
+				// MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
 			})
 
 		</script>
