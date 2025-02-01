@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import ollama from 'ollama';
-import { marked } from 'marked';
+const { marked } = require("marked");
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -18,7 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const disposable = vscode.commands.registerCommand('deepseek-vsc-chat.start', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello from DeepSeek VSC Chat!');
+		// vscode.window.showInformationMessage('Hello from DeepSeek VSC Chat!');
 		const panel: vscode.WebviewPanel = vscode.window.createWebviewPanel(
 			// Panel to house chat dialog UI
 			"deepChat",
@@ -27,12 +27,13 @@ export function activate(context: vscode.ExtensionContext) {
 			{ enableScripts: true }
 		);
 		panel.webview.html = getWebviewContent();
-		var thinkingText: string = "";
 		var responseText: string = "";
 
 		// listener
 		panel.webview.onDidReceiveMessage(async (message: any) => {
+
 			if (message.command === "chat") {
+				var thinkingText: string = "";
 				responseText += "<hr/>";
 				const userPrompt = message.text;
 
@@ -95,12 +96,6 @@ export function deactivate() { }
 
 
 
-
-
-
-
-
-
 function getWebviewContent(): string {
 	return /*html*/`
 	<!DOCTYPE html>
@@ -118,11 +113,17 @@ function getWebviewContent(): string {
 		<!-- MathJax -->
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 		<script>
+			function scrollToBottom() {
+				const scrollableElement = document.getElementById('scrollableElement');
+				if (scrollableElement) {
+					scrollableElement.scrollTop = scrollableElement.scrollHeight;
+				}
+			}
 			function onLoad(){
-				// MathJax.Hub.Startup.onload();
-
 				document.getElementById("promptId").focus();
+				document.getElementsByClassName("container")[0].style.height = window.innerHeight + 'px';
 				vscode.postMessage({command:"chatHistory", text: ""});
+				scrollToBottom();
 			}
 			function autoResize(textarea) {
 				textarea.style.height = "auto";
@@ -135,15 +136,17 @@ function getWebviewContent(): string {
 		<div class="container">
 			<h2 class="text-light">DeepSeek VS Code Extension</h2>
 			<form id="questionForm" onsubmit="askQuestion(event)">
-				<div class="input-group">
-					<textarea required class="form-control" name="prompt" id="promptId" rows="1" oninput="autoResize(this)"
-						placeholder="Ask DeepSeek-R1"></textarea>
-					<button class="btn btn-primary" type="submit" id="askBtnId" style="width: 4rem;">Ask</button>
-				</div>
-				<br />
-				<button class="btn btn-outline-light" type="button" id="resetBtnId">Reset</button>
-				<!-- <div class="border border-secondary rounded text-secondary p-2 lh-1 fst-italic" id="thinkingId"></div> -->
+			<button class="btn btn-outline-light" type="button" id="resetBtnId">Reset</button>
+			<div class="overflow-y-auto" style="max-height:700px" id="scrollableElement">
+				<div class="border border-secondary rounded text-secondary p-2 lh-1 fst-italic" id="thinkingId"></div>
 				<div class="border border-light rounded text-light p-2" id="responseId"></div>
+			</div>
+			<br />
+			<div class="input-group vh-25 mb-4">
+				<textarea required class="form-control" name="prompt" id="promptId" rows="1" oninput="autoResize(this)"
+					placeholder="Ask DeepSeek-R1"></textarea>
+				<button class="btn btn-primary" type="submit" id="askBtnId" style="width: 4rem;">Ask</button>
+			</div>
 			</form>
 		</div>
 
@@ -194,12 +197,14 @@ function getWebviewContent(): string {
 					askButton.disabled = false
 					askButton.innerText = "Ask"
 					responseContainer.innerHTML = text;
-					// parse Latex with MathJax
-					MathJax.Hub.Queue(["Typeset", MathJax.Hub, responseContainer]);
+					scrollToBottom();
 				} else if (command === "chatThinking") {
-					// document.getElementById("thinkingId").innerText = text;
+					document.getElementById("thinkingId").innerHTML = text;
 				}
+				// parse Latex with MathJax
+				MathJax.Hub.Queue(["Typeset", MathJax.Hub, responseContainer]);
 			})
+
 		</script>
 
 
