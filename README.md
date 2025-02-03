@@ -18,7 +18,7 @@
 3. After installing, use `ctrl+shift+p` in VSCode and select "Start DeepSeek Chat"
 
 ## Credits
-Thank you Fireship for the [tutorial](https://youtu.be/clJCDHml2cA?si=4OtjgYU6vWYvCcCb)!
+Thank you [Fireship](https://youtube.com/@beyondfireship?si=zWoZxPfQUvpgsNzJ) for the [tutorial](https://youtu.be/clJCDHml2cA?si=4OtjgYU6vWYvCcCb)!
 
 ## Versions
 
