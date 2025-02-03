@@ -12,6 +12,7 @@
 ## Usage
 
 1. Run `vsce package` to generate `.vsix` file
+  * or use the ones provided in the repository
 2. Install in VSCode via `Extensions` > `Install from VSIX...` > Select .vsix file
 3. After installing, use `ctrl+shift+p` in VSCode and select "Start DeepSeek Chat"
 
