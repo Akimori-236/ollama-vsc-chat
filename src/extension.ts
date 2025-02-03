@@ -37,6 +37,9 @@ export function activate(context: vscode.ExtensionContext) {
 			{ enableScripts: true }
 		);
 		panel.webview.html = getWebviewContent();
+		setTimeout(() => {
+			panel.webview.postMessage({ command: "getModelName", text: ai_model });
+		}, 1000);
 		var responseText: string = "";
 
 		// listener
@@ -126,6 +129,7 @@ async function selectModel(): Promise<string> {
 		if (modelList.length === 0) {
 			throw new Error("No models detected in Ollama, download some and try again.");
 		}
+		// FIXME: showQuickPick
 		// else if (modelList.length > 1) {
 		// 	// const selection = await vscode.window.showQuickPick(modelList, { placeHolder: "Select a model to use..." });
 		// 	// if (selection !== undefined) {
@@ -180,9 +184,6 @@ function getWebviewContent(): string {
 				document.getElementsByClassName("container")[0].style.height = window.innerHeight + 'px';
 				vscode.postMessage({command:"chatHistory", text: ""});
 				scrollToBottom();
-				setTimeout(() => {
-					vscode.postMessage({command: 'getModelName', text:''})
-				}, 1000);
 			}
 			function autoResize(textarea) {
 				textarea.style.height = "auto";
