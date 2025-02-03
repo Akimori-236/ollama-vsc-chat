@@ -5,7 +5,8 @@
 
 * Ollama
   * You can download Ollama at [https://ollama.com/download](https://ollama.com/download).
-  * After installing, run `ollama run deepseek-r1`.
+  * After installing, run `ollama run deepseek-r1` on your terminal.
+  * You can verify with `ollama ps` on your terminal.
 
 ## Usage
 
