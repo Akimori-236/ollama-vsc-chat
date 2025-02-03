@@ -2,7 +2,11 @@
   "name": "deepseek-vsc-chat",
   "displayName": "DeepSeek VSC Chat",
   "description": "Chat with DeepSeek in VSCode",
-  "version": "0.0.3",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Akimori-236/deepseek-vsc-chat.git"
+  },
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.96.0"
   },

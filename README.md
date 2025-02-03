@@ -1,4 +1,3 @@
-
 # DeepSeek VSC Chat
 
 ## Prerequisites
@@ -18,6 +17,7 @@
 3. After installing, use `ctrl+shift+p` in VSCode and select "Start DeepSeek Chat"
 
 ## Credits
+
 Thank you [Fireship](https://youtube.com/@beyondfireship?si=zWoZxPfQUvpgsNzJ) for the [tutorial](https://youtu.be/clJCDHml2cA?si=4OtjgYU6vWYvCcCb)!
 
 ## Versions
@@ -28,3 +28,5 @@ Thank you [Fireship](https://youtube.com/@beyondfireship?si=zWoZxPfQUvpgsNzJ) fo
   * UI updates
 * 0.0.3
   * added Markdown & Latex formatting
+* 0.0.4
+  * Dynamically get one of DeepSeek models from user's Ollama
