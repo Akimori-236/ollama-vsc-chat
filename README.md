@@ -5,8 +5,9 @@
 
 * Ollama
   * You can download Ollama at [https://ollama.com/download](https://ollama.com/download).
-    * After installing, run `ollama run deepseek-r1` on your terminal.
-    * You can verify with `ollama ps` on your terminal.
+    1. Install Ollama
+    2. After installing, run `ollama run deepseek-r1` on your terminal.
+    3. You can verify with `ollama ps` on your terminal.
   * Or alternatively for [MAXIMUM SECURITY](https://youtu.be/7TR-FLWNVHY?si=e05gynmQfmM_37he)...
 
 ## Usage
