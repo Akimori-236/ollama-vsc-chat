@@ -7,6 +7,16 @@ import { marked } from 'marked';
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	// Find a deepseek model in ollama
+	var ai_model: string = "";
+	selectModel().then((model: string) => {
+		console.log(model);
+		ai_model = model;
+	}).catch((error) => {
+		console.error(error);
+	});
+
+
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
@@ -39,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 				try {
 					const streamResponse = await ollama.chat({
-						model: "deepseek-r1:latest",
+						model: ai_model,
 						messages: [{ role: "user", content: userPrompt }],
 						stream: true
 					});
@@ -79,6 +89,8 @@ export function activate(context: vscode.ExtensionContext) {
 				context.workspaceState.update("chatResponse", "");
 				responseText = context.workspaceState.get("chatResponse") || "";
 				postResponse(responseText);
+			} else if (message.command === "getModelName") {
+				panel.webview.postMessage({ command: "getModelName", text: ai_model });
 			}
 		});
 
@@ -86,8 +98,8 @@ export function activate(context: vscode.ExtensionContext) {
 			let processedResponse = responseText
 				.replace(/\\\[/g, '$$$')
 				.replace(/\\\]/g, '$$$');
-				// .replace(/\\\(/g, '\\\(')
-				// .replace(/\\\)/g, '\\\)');
+			// .replace(/\\\(/g, '\\\(')
+			// .replace(/\\\)/g, '\\\)');
 			const htmlResponse = await marked(processedResponse);
 			panel.webview.postMessage({ command: "chatResponse", text: htmlResponse });
 		}
@@ -98,6 +110,45 @@ export function activate(context: vscode.ExtensionContext) {
 
 // This method is called when your extension is deactivated
 export function deactivate() { }
+
+
+
+async function selectModel(): Promise<string> {
+	try {
+		const models = await ollama.list();
+
+		const modelList = models.models
+			?.map(model => model.name)
+			?.filter((name) => name.toLowerCase().startsWith("deepseek"))
+			.sort((a, b) => b.localeCompare(a));
+		vscode.window.showInformationMessage(`Available DeepSeek models: ${JSON.stringify(modelList)}`);
+
+		if (modelList.length === 0) {
+			throw new Error("No models detected in Ollama, download some and try again.");
+		}
+		// else if (modelList.length > 1) {
+		// 	// const selection = await vscode.window.showQuickPick(modelList, { placeHolder: "Select a model to use..." });
+		// 	// if (selection !== undefined) {
+		// 	// 	vscode.window.showInformationMessage(`Using model: ${selection}`);
+		// 	// 	return selection;
+		// 	// } else {
+		// 	// 	throw new Error("Invalid model selected.");
+		// 	// }
+		// }
+		else {
+			vscode.window.showInformationMessage(`Using model: ${modelList[0]}`);
+			return modelList[0];
+		}
+	} catch (error: unknown) {
+		if (error instanceof Error) {
+			vscode.window.showErrorMessage(`Error: ${error.message}`);
+		} else {
+			vscode.window.showErrorMessage("An unknown error occurred.");
+		}
+		return "";
+	}
+}
+
 
 
 
@@ -129,6 +180,9 @@ function getWebviewContent(): string {
 				document.getElementsByClassName("container")[0].style.height = window.innerHeight + 'px';
 				vscode.postMessage({command:"chatHistory", text: ""});
 				scrollToBottom();
+				setTimeout(() => {
+					vscode.postMessage({command: 'getModelName', text:''})
+				}, 1000);
 			}
 			function autoResize(textarea) {
 				textarea.style.height = "auto";
@@ -139,7 +193,11 @@ function getWebviewContent(): string {
 
 	<body class="bg-dark" onload="onLoad()">
 		<div class="container">
-			<h2 class="text-light">DeepSeek VS Code Extension</h2>
+			<h2 class="text-light">
+				DeepSeek VS Code Extension
+				<span class="badge text-bg-secondary" id="modelId"></span>
+			</h2>
+
 			<form id="questionForm" onsubmit="askQuestion(event)">
 			<button class="btn btn-outline-light" type="button" id="resetBtnId">Reset</button>
 			<div class="overflow-y-auto" style="max-height:700px" id="scrollableElement">
@@ -206,6 +264,9 @@ function getWebviewContent(): string {
 					scrollToBottom();
 				} else if (command === "chatThinking") {
 					document.getElementById("thinkingId").innerHTML = text;
+				} else if (command === "getModelName") {
+					console.log(text)
+					document.getElementById("modelId").innerText = text;
 				}
 				// parse Latex with MathJax
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, responseContainer]);
