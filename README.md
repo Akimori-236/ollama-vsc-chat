@@ -17,6 +17,9 @@
 2. Install in VSCode via `Extensions` > `Install from VSIX...` > Select .vsix file
 3. After installing, use `ctrl+shift+p` in VSCode and select "Start DeepSeek Chat"
 
+## Credits
+Thank you Fireship for the [tutorial](https://youtu.be/clJCDHml2cA?si=4OtjgYU6vWYvCcCb)!
+
 ## Versions
 
 * 0.0.1
