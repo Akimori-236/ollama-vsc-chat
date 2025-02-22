@@ -9,12 +9,18 @@ import { marked } from 'marked';
 export function activate(context: vscode.ExtensionContext) {
 	// Find a deepseek model in ollama
 	var ai_model: string = "";
-	selectModel().then((model: string) => {
-		console.log(model);
-		ai_model = model;
-	}).catch((error) => {
-		console.error(error);
-	});
+	selectModel()
+		.then((model: string) => {
+			console.log(model);
+			ai_model = model;
+		})
+		.catch((error) => {
+			if (error instanceof Error) {
+				vscode.window.showErrorMessage(`Error: ${error.message}`);
+			} else {
+				vscode.window.showErrorMessage("An unknown error occurred.");
+			}
+		});
 
 
 
@@ -118,39 +124,30 @@ export function deactivate() { }
 
 
 async function selectModel(): Promise<string> {
-	try {
-		const models = await ollama.list();
+	const models = await ollama.list();
 
-		const modelList = models.models
-			?.map(model => model.name)
-			?.filter((name) => name.toLowerCase().startsWith("deepseek"))
-			.sort((a, b) => b.localeCompare(a));
-		vscode.window.showInformationMessage(`Available DeepSeek models: ${JSON.stringify(modelList)}`);
+	const modelList = models.models
+		?.map(model => model.name)
+		?.filter((name) => name.toLowerCase().startsWith("deepseek"))
+		.sort((a, b) => b.localeCompare(a));
+	vscode.window.showInformationMessage(`Available DeepSeek models: ${JSON.stringify(modelList)}`);
 
-		if (modelList.length === 0) {
-			throw new Error("No models detected in Ollama, download some and try again.");
-		}
-		// FIXME: showQuickPick
-		// else if (modelList.length > 1) {
-		// 	// const selection = await vscode.window.showQuickPick(modelList, { placeHolder: "Select a model to use..." });
-		// 	// if (selection !== undefined) {
-		// 	// 	vscode.window.showInformationMessage(`Using model: ${selection}`);
-		// 	// 	return selection;
-		// 	// } else {
-		// 	// 	throw new Error("Invalid model selected.");
-		// 	// }
-		// }
-		else {
-			vscode.window.showInformationMessage(`Using model: ${modelList[0]}`);
-			return modelList[0];
-		}
-	} catch (error: unknown) {
-		if (error instanceof Error) {
-			vscode.window.showErrorMessage(`Error: ${error.message}`);
-		} else {
-			vscode.window.showErrorMessage("An unknown error occurred.");
-		}
-		return "";
+	if (modelList.length === 0) {
+		throw new Error("No models detected in Ollama, download some and try again.");
+	}
+	// FIXME: showQuickPick
+	// else if (modelList.length > 1) {
+	// 	// const selection = await vscode.window.showQuickPick(modelList, { placeHolder: "Select a model to use..." });
+	// 	// if (selection !== undefined) {
+	// 	// 	vscode.window.showInformationMessage(`Using model: ${selection}`);
+	// 	// 	return selection;
+	// 	// } else {
+	// 	// 	throw new Error("Invalid model selected.");
+	// 	// }
+	// }
+	else {
+		vscode.window.showInformationMessage(`Using model: ${modelList[0]}`);
+		return modelList[0];
 	}
 }
 
