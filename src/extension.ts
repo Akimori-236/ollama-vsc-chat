@@ -49,11 +49,12 @@ export function activate(context: vscode.ExtensionContext) {
 				var thinkingText: string = "";
 				responseText += "\n --- \n";
 				const userPrompt = message.text;
+				responseText += userPrompt + "\n";
 
 				try {
 					const streamResponse = await ollama.chat({
 						model: ai_model,
-						messages: [{ role: "user", content: userPrompt }],
+						messages: [{ role: "user", content: responseText }],
 						stream: true
 					});
 
