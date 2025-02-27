@@ -21,6 +21,7 @@
             document.getElementById("promptId").focus();
             document.getElementsByClassName("container")[0].style.height = window.innerHeight + 'px';
             vscode.postMessage({ command: "chatHistory", text: "" });
+            vscode.postMessage({ command: "getModelList", text: "" });
             scrollToBottom();
         }
 
@@ -41,11 +42,13 @@
     <div class="container">
         <h2 class="text-light">
             Ollama VS Code Extension
-            <span class="badge text-bg-secondary" id="modelId"></span>
+            <button class="btn btn-outline-danger" type="button" id="resetBtnId">Reset Chat</button>
+            <span class="badge text-bg-info" id="modelId"></span>
         </h2>
 
+        <select class="form-select" name='selectModel' id='selectModelId' onchange="changeModel()"> </select>
+
         <form id="questionForm" onsubmit="askQuestion(event)">
-            <button class="btn btn-outline-light" type="button" id="resetBtnId">Reset</button>
             <div class="overflow-y-auto" style="max-height:700px" id="scrollableElement">
                 <div class="border border-secondary rounded text-secondary p-2 lh-1 fst-italic" id="thinkingId"></div>
                 <div class="border border-light rounded text-light p-2" id="responseId"></div>

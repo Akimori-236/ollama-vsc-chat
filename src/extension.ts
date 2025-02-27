@@ -4,9 +4,9 @@ import { marked } from 'marked';
 import getWebviewContent from './getWebviewContent';
 
 export function activate(context: vscode.ExtensionContext) {
-	let ai_model: string = "";
+	let llm_in_use: string = "";
 
-	selectModel().then(model => ai_model = model).catch(handleError);
+	selectModel().then(model => llm_in_use = model).catch(handleError);
 
 	console.log('"ollama-vsc-chat" is now active!');
 
@@ -14,40 +14,47 @@ export function activate(context: vscode.ExtensionContext) {
 		const panel = vscode.window.createWebviewPanel("deepChat", "Ollama Chat", vscode.ViewColumn.One, { enableScripts: true });
 		panel.webview.html = getWebviewContent(panel, context);
 
-		setTimeout(() => panel.webview.postMessage({ command: "getModelName", text: ai_model }), 1000);
+		setTimeout(() => panel.webview.postMessage({ command: "getModelName", text: llm_in_use }), 1000);
 		let responseText = "";
 
 		panel.webview.onDidReceiveMessage(async (message) => {
 			switch (message.command) {
-				case "chat": await chat(message); break;
-				case "chatHistory": postResponse(responseText); break;
-				case "chatReset": resetHistory(); break;
-				case "getModelName": panel.webview.postMessage({ command: "getModelName", text: ai_model }); break;
-				case "getModelList": await getModelList().then(modelList => panel.webview.postMessage({ command: "getModelList", text: modelList.join(",") })); break;
-				case "selectModel": await selectModel(message.text).then(model => ai_model = model).then(() => panel.webview.postMessage({ command: "getModelName", text: ai_model })); break;
-				default: vscode.window.showErrorMessage("Unsupported message type."); break;
+				case "chat": await chat(message);
+					break;
+				case "chatHistory": postResponse(responseText);
+					break;
+				case "chatReset": resetHistory();
+					break;
+				case "getModelName": panel.webview.postMessage({ command: "getModelName", text: llm_in_use });
+					break;
+				case "getModelList":
+					await getModelList()
+						.then(modelList => panel.webview.postMessage({ command: "getModelList", text: modelList.join(",") }));
+					break;
+				case "selectModel":
+					await selectModel(message.text)
+						.then(model => llm_in_use = model)
+						.then(()=>vscode.window.showInformationMessage(`${llm_in_use} selected.`))
+						.then(() => panel.webview.postMessage({ command: "getModelName", text: llm_in_use }));
+					break;
+				default: vscode.window.showErrorMessage("Unsupported message type.");
+					break;
 			}
 		});
 
 		async function chat(message: any) {
-			let thinkingText = "", userPrompt = message.text;
-			responseText += `\n --- \n${userPrompt}\n`;
+			let userPrompt = message.text;
+			responseText += `\n --- \n${userPrompt}\n\n`;
 
 			try {
 				const streamResponse = await ollama.chat({
-					model: ai_model,
+					model: llm_in_use,
 					messages: [{ role: "user", content: responseText }],
 					stream: true
 				});
 
-				let isThinking = true;
 				for await (const part of streamResponse) {
-					if (part.message.content === "<think>") continue;
-					if (part.message.content === "</think>") { isThinking = false; continue; }
-					if (isThinking) {
-						thinkingText += part.message.content;
-						panel.webview.postMessage({ command: "chatThinking", text: thinkingText });
-					} else {
+					if (part.message.content && part.message.content !== "<think>" && part.message.content !== "</think>") {
 						responseText += part.message.content;
 						context.workspaceState.update("chatResponse", responseText);
 						postResponse(responseText);
@@ -71,7 +78,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 }
 
-export function deactivate() {}
+export function deactivate() { }
 
 async function getModelList(): Promise<string[]> {
 	const models = await ollama.list();
@@ -80,11 +87,11 @@ async function getModelList(): Promise<string[]> {
 
 async function selectModel(selectedModel: string = ""): Promise<string> {
 	const modelList = await getModelList();
-	if (modelList.length === 0) throw new Error("No models detected in Ollama.");
+	if (modelList.length === 0) { throw new Error("No models detected in Ollama."); }
 	return selectedModel ? modelList.find(name => name === selectedModel) || modelList[0] : modelList[0];
 }
 
 function handleError(error: any) {
-	if (error instanceof Error) vscode.window.showErrorMessage(`Error: ${error.message}`);
-	else vscode.window.showErrorMessage("An unknown error occurred.");
+	if (error instanceof Error) { vscode.window.showErrorMessage(`Error: ${error.message}`); }
+	else { vscode.window.showErrorMessage("An unknown error occurred."); }
 }

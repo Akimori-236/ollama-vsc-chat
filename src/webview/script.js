@@ -49,12 +49,62 @@ function handleMessage(event) {
         case "chatResponse":
         case "chatThinking":
             resetAskButton();
-            (command === "chatResponse" ? responseContainer : thinkingContainer).innerHTML = text;
+
+            // If <think> tag is present in the text
+            if (text.includes("<think>") && text.includes("</think>")) {
+                const thinkParts = text.split("<think>").map(part => part.split("</think>"));
+
+                // Split into thinking and response parts
+                if (thinkParts.length > 1) {
+                    // The first part is for thinkingContainer
+                    thinkingContainer.innerHTML = thinkParts[1][0].trim();
+
+                    // The second part is for responseContainer
+                    responseContainer.innerHTML = thinkParts[1][1].trim();
+                }
+            } else if (text.includes("<think>")) {
+                // If only <think> tag is present
+                thinkingContainer.innerHTML = text.replace(/<\/?think>/g, '').trim();
+            } else {
+                // If no <think> tags are found, just display in responseContainer
+                responseContainer.innerHTML = text;
+            }
+            break;
+        case "getModelList":
+            let modelList = text.split(",");
+            populateModelList(modelList);
             break;
         case "getModelName":
             modelContainer.innerText = text;
             break;
     }
 
+    // Reprocess the content to format any LaTeX or math symbols using MathJax
     MathJax.Hub.Queue(["Typeset", MathJax.Hub, responseContainer]);
+}
+
+// Function to populate the model options
+function populateModelList(models) {
+    const selectModelElement = document.getElementById('selectModelId');
+
+    // Clear any existing options
+    // selectModelElement.innerHTML = '<option value="" disabled selected>Select a model</option>';
+
+    // Add new options dynamically
+    models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model;
+        option.textContent = model;
+        selectModelElement.appendChild(option);
+    });
+}
+
+// Function to handle model change
+function changeModel() {
+    const selectedModel = document.getElementById('selectModelId').value;
+
+    if (selectedModel) {
+        // Send the selected model to VS Code or handle the change as needed
+        vscode.postMessage({ command: 'selectModel', text: selectedModel });
+    }
 }
