@@ -1,10 +1,10 @@
 {
-  "name": "deepseek-vsc-chat",
-  "displayName": "DeepSeek VSC Chat",
-  "description": "Chat with DeepSeek in VSCode",
+  "name": "ollama-vsc-chat",
+  "displayName": "Ollama VSC Chat",
+  "description": "Chat with Ollama models in VSCode",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Akimori-236/deepseek-vsc-chat.git"
+    "url": "https://github.com/Akimori-236/ollama-vsc-chat.git"
   },
   "version": "0.0.4",
   "engines": {
@@ -18,8 +18,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "deepseek-vsc-chat.start",
-        "title": "Start DeepSeek Chat"
+        "command": "ollama-vsc-chat.start",
+        "title": "Start Ollama Chat"
       }
     ]
   },
@@ -45,12 +45,12 @@
     "eslint": "^9.16.0",
     "ts-loader": "^9.5.1",
     "typescript": "^5.7.2",
-    "webpack": "^5.95.0",
+    "webpack": "^5.98.0",
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "deepseek-vsc-chat": "file:",
     "marked": "^15.0.6",
-    "ollama": "^0.5.12"
+    "ollama": "^0.5.12",
+    "ollama-vsc-chat": "file:"
   }
 }
