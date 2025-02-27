@@ -10,7 +10,6 @@ const responseContainer = document.getElementById("responseId");
 const modelContainer = document.getElementById("modelId");
 const form = document.getElementById("questionForm");
 
-// Handle asking a question
 function askQuestion(event) {
     event.preventDefault();
     const text = promptInput.value.trim();
@@ -21,22 +20,16 @@ function askQuestion(event) {
     }
 }
 
-// Post question to AI on enter key
 function handleEnterKey(event) {
     if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
-        if (form.checkValidity()) {
-            askQuestion(event);
-        } else {
-            form.reportValidity();
-        }
+        form.checkValidity() ? askQuestion(event) : form.reportValidity();
     }
 }
 
-// Reset history
 function resetHistory() {
     thinkingContainer.innerHTML = "";
-    vscode.postMessage({ command: 'chatReset', text: '' });
+    vscode.postMessage({ command: 'chatReset' });
 }
 
 function resetAskButton() {
@@ -44,32 +37,23 @@ function resetAskButton() {
     askBtn.innerText = "Chat";
 }
 
-// Listen for response stream from VS Code
 function handleMessage(event) {
     const { command, text } = event.data;
 
     switch (command) {
         case "chatResponse":
-            resetAskButton();
-            responseContainer.innerHTML = text;
-            // scrollToBottom();
-            break;
         case "chatThinking":
             resetAskButton();
-            thinkingContainer.innerHTML = text;
+            (command === "chatResponse" ? responseContainer : thinkingContainer).innerHTML = text;
             break;
         case "getModelName":
             modelContainer.innerText = text;
             break;
-        default:
-            break;
     }
 
-    // Parse LaTeX with MathJax
     MathJax.Hub.Queue(["Typeset", MathJax.Hub, responseContainer]);
 }
 
-// Attach event listeners
 function setupEventListeners() {
     promptInput.addEventListener("keypress", handleEnterKey);
     resetBtn.addEventListener("click", resetHistory);
@@ -78,8 +62,3 @@ function setupEventListeners() {
 
 // Initialize event listeners
 setupEventListeners();
-
-// Utility function to scroll the response container to the bottom
-function scrollToBottom() {
-    responseContainer.scrollTop = responseContainer.scrollHeight;
-}

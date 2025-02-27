@@ -18,16 +18,16 @@
     <script>
         function scrollToBottom() {
             const scrollableElement = document.getElementById('scrollableElement');
-            if (scrollableElement) {
-                scrollableElement.scrollTop = scrollableElement.scrollHeight;
-            }
+            if (scrollableElement) scrollableElement.scrollTop = scrollableElement.scrollHeight;
         }
+
         function onLoad() {
             document.getElementById("promptId").focus();
             document.getElementsByClassName("container")[0].style.height = window.innerHeight + 'px';
             vscode.postMessage({ command: "chatHistory", text: "" });
             scrollToBottom();
         }
+
         function autoResize(textarea) {
             textarea.style.height = "auto";
             textarea.style.height = (textarea.scrollHeight) + "px";
