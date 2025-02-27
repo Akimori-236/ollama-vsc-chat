@@ -16,21 +16,23 @@
     <!-- MathJax -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <script>
-        function scrollToBottom() {
-            const scrollableElement = document.getElementById('scrollableElement');
-            if (scrollableElement) scrollableElement.scrollTop = scrollableElement.scrollHeight;
-        }
-
         function onLoad() {
+            setupEventListeners();
             document.getElementById("promptId").focus();
             document.getElementsByClassName("container")[0].style.height = window.innerHeight + 'px';
             vscode.postMessage({ command: "chatHistory", text: "" });
             scrollToBottom();
         }
 
-        function autoResize(textarea) {
-            textarea.style.height = "auto";
-            textarea.style.height = (textarea.scrollHeight) + "px";
+        function scrollToBottom() {
+            const scrollableElement = document.getElementById('scrollableElement');
+            if (scrollableElement) scrollableElement.scrollTop = scrollableElement.scrollHeight;
+        }
+
+        function setupEventListeners() {
+            promptInput.addEventListener("keypress", handleEnterKey);
+            resetBtn.addEventListener("click", resetHistory);
+            window.addEventListener("message", handleMessage);
         }
     </script>
 </head>

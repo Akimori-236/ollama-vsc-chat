@@ -37,6 +37,11 @@ function resetAskButton() {
     askBtn.innerText = "Chat";
 }
 
+function autoResize(textarea) {
+    textarea.style.height = "auto";
+    textarea.style.height = (textarea.scrollHeight) + "px";
+}
+
 function handleMessage(event) {
     const { command, text } = event.data;
 
@@ -53,12 +58,3 @@ function handleMessage(event) {
 
     MathJax.Hub.Queue(["Typeset", MathJax.Hub, responseContainer]);
 }
-
-function setupEventListeners() {
-    promptInput.addEventListener("keypress", handleEnterKey);
-    resetBtn.addEventListener("click", resetHistory);
-    window.addEventListener("message", handleMessage);
-}
-
-// Initialize event listeners
-setupEventListeners();
