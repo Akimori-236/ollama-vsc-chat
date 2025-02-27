@@ -2,6 +2,7 @@
 .vscode-test/**       # Exclude test files.
 out/**                # Exclude compiled output (if you're building).
 node_modules/**       # Exclude node_modules (dependencies will be installed when users install the extension).
+**/*.test.ts          # Exclude test files.
 .gitignore            # Exclude .gitignore.
 .yarnrc               # Exclude Yarn configuration file.
 webpack.config.js     # Exclude webpack config (not needed in the package).
@@ -11,5 +12,4 @@ vsc-extension-quickstart.md  # Exclude extension guide markdown.
 **/*.map              # Exclude source maps.
 **/*.ts               # Exclude TypeScript source files (you typically compile them).
 **/.vscode-test.*     # Exclude test-related files.
-**/*.test.ts          # Exclude test files.
 !src/webview/**       # Include the src/webview directory and its contents (index.html, other assets).
