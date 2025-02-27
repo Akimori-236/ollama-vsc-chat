@@ -30,3 +30,5 @@ Thank you [Fireship](https://youtube.com/@beyondfireship?si=zWoZxPfQUvpgsNzJ) fo
   * added Markdown & Latex formatting
 * 0.0.4
   * Dynamically get one of DeepSeek models from user's Ollama
+* 0.0.5
+  * Allow user to select which ollama model to use
