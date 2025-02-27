@@ -1,14 +1,15 @@
-.vscode/**
-.vscode-test/**
-out/**
-node_modules/**
-src/**
-.gitignore
-.yarnrc
-webpack.config.js
-vsc-extension-quickstart.md
-**/tsconfig.json
-**/eslint.config.mjs
-**/*.map
-**/*.ts
-**/.vscode-test.*
+.vscode/**            # Exclude .vscode folder (workspace settings).
+.vscode-test/**       # Exclude test files.
+out/**                # Exclude compiled output (if you're building).
+node_modules/**       # Exclude node_modules (dependencies will be installed when users install the extension).
+.gitignore            # Exclude .gitignore.
+.yarnrc               # Exclude Yarn configuration file.
+webpack.config.js     # Exclude webpack config (not needed in the package).
+vsc-extension-quickstart.md  # Exclude extension guide markdown.
+**/tsconfig.json      # Exclude TypeScript config files.
+**/eslint.config.mjs  # Exclude ESLint config.
+**/*.map              # Exclude source maps.
+**/*.ts               # Exclude TypeScript source files (you typically compile them).
+**/.vscode-test.*     # Exclude test-related files.
+**/*.test.ts          # Exclude test files.
+!src/webview/**       # Include the src/webview directory and its contents (index.html, other assets).
