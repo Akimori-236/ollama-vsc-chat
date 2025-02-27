@@ -44,7 +44,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 		async function chat(message: any) {
 			let userPrompt = message.text;
-			responseText += `\n --- \n${userPrompt}\n\n`;
+			responseText += `<hr />\n${userPrompt}\n\n`;
+			let thinkingText = '';  // Variable to store text between <think> and </think>
+			let isThinking = false;  // Boolean flag to track if we are inside <think>...</think>
 
 			try {
 				const streamResponse = await ollama.chat({
@@ -54,13 +56,42 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 
 				for await (const part of streamResponse) {
-					if (part.message.content && part.message.content !== "<think>" && part.message.content !== "</think>") {
-						responseText += part.message.content;
+					if (!part.message.content) { continue; }  // Skip empty content
+
+					let content = part.message.content;
+
+					// Handle <think> start
+					if (content.includes("<think>")) {
+						isThinking = true;
+						content = content.split("<think>")[1];  // Get content after <think>
+					}
+
+					// Handle </think> end
+					if (content.includes("</think>")) {
+						isThinking = false;
+						const endContent = content.split("</think>")[0];  // Get content before </think>
+						thinkingText += endContent;  // Add to thinkingText
+						content = content.split("</think>")[1] || '';  // Get any remaining content after </think>
+					}
+
+					// Add the content to the appropriate variable
+					if (isThinking) {
+						thinkingText += content;  // Inside <think>, add to thinkingText
+						postThinking(thinkingText);
+					} else {
+						responseText += content;  // Outside <think>, add to responseText
 						context.workspaceState.update("chatResponse", responseText);
 						postResponse(responseText);
 					}
 				}
-			} catch (error) { handleError(error); }
+			} catch (error) {
+				handleError(error);
+			}
+		}
+
+		async function postThinking(thinkingText: string) {
+			const htmlResponse = await marked(thinkingText.replace(/\\\[/g, '$$$').replace(/\\\]/g, '$$$'));
+			panel.webview.postMessage({ command: "chatThinking", text: htmlResponse });
 		}
 
 		async function postResponse(responseText: string) {

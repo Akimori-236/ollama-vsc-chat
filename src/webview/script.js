@@ -9,6 +9,7 @@ const thinkingContainer = document.getElementById("thinkingId");
 const responseContainer = document.getElementById("responseId");
 const modelContainer = document.getElementById("modelId");
 const form = document.getElementById("questionForm");
+const scrollableElement = document.getElementById('scrollableElement');
 
 function askQuestion(event) {
     event.preventDefault();
@@ -46,29 +47,14 @@ function handleMessage(event) {
     const { command, text } = event.data;
 
     switch (command) {
-        case "chatResponse":
         case "chatThinking":
             resetAskButton();
-
-            // If <think> tag is present in the text
-            if (text.includes("<think>") && text.includes("</think>")) {
-                const thinkParts = text.split("<think>").map(part => part.split("</think>"));
-
-                // Split into thinking and response parts
-                if (thinkParts.length > 1) {
-                    // The first part is for thinkingContainer
-                    thinkingContainer.innerHTML = thinkParts[1][0].trim();
-
-                    // The second part is for responseContainer
-                    responseContainer.innerHTML = thinkParts[1][1].trim();
-                }
-            } else if (text.includes("<think>")) {
-                // If only <think> tag is present
-                thinkingContainer.innerHTML = text.replace(/<\/?think>/g, '').trim();
-            } else {
-                // If no <think> tags are found, just display in responseContainer
-                responseContainer.innerHTML = text;
-            }
+            thinkingContainer.innerHTML = text;
+            break;
+        case "chatResponse":
+            resetAskButton();
+            responseContainer.innerHTML = text;
+            scrollToBottom();
             break;
         case "getModelList":
             let modelList = text.split(",");
@@ -107,4 +93,8 @@ function changeModel() {
         // Send the selected model to VS Code or handle the change as needed
         vscode.postMessage({ command: 'selectModel', text: selectedModel });
     }
+}
+
+function scrollToBottom() {
+    if (scrollableElement) { scrollableElement.scrollTop = scrollableElement.scrollHeight; }
 }
