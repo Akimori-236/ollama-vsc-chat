@@ -46,14 +46,20 @@
             <span class="badge text-bg-info" id="modelId"></span>
         </h2>
 
-        <select class="form-select" name='selectModel' id='selectModelId' onchange="changeModel()"> </select>
+        <select class="form-select form-select-sm" name='selectModel' id='selectModelId' onchange="changeModel()">
+        </select>
 
-        <form id="questionForm" onsubmit="askQuestion(event)">
+        <br />
+
+        <form id="questionForm" class="" onsubmit="askQuestion(event)">
             <div class="overflow-y-auto" style="max-height:700px" id="scrollableElement">
-                <div class="border border-secondary rounded text-secondary p-2 lh-1 fst-italic" id="thinkingId"></div>
+                <div class="border border-secondary rounded text-secondary p-2 lh-1 fst-italic" id="thinkingId">
+                </div>
                 <div class="border border-light rounded text-light p-2" id="responseId"></div>
             </div>
+
             <br />
+
             <div class="input-group vh-25 mb-4">
                 <textarea required class="form-control" name="prompt" id="promptId" rows="1" oninput="autoResize(this)"
                     placeholder="Ask something!"></textarea>

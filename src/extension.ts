@@ -34,8 +34,8 @@ export function activate(context: vscode.ExtensionContext) {
 				case "selectModel":
 					await selectModel(message.text)
 						.then(model => llm_in_use = model)
-						.then(()=>vscode.window.showInformationMessage(`${llm_in_use} selected.`))
-						.then(() => panel.webview.postMessage({ command: "getModelName", text: llm_in_use }));
+						.then(() => panel.webview.postMessage({ command: "getModelName", text: llm_in_use }))
+						.then(() => vscode.window.showInformationMessage(`${llm_in_use} selected.`));
 					break;
 				default: vscode.window.showErrorMessage("Unsupported message type.");
 					break;
