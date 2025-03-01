@@ -1,7 +1,13 @@
 import * as vscode from 'vscode';
-import ollama from 'ollama';
+import ollama, { ChatResponse } from 'ollama';
 import { marked } from 'marked';
 import getWebviewContent from './getWebviewContent';
+import { Message, } from 'ollama';
+
+const STYLE_PROMPT: Message = {
+	role: "system",
+	content: "Please respond in a friendly and helpful manner.",
+};
 
 export function activate(context: vscode.ExtensionContext) {
 	let llm_in_use: string = "";
@@ -15,24 +21,32 @@ export function activate(context: vscode.ExtensionContext) {
 		panel.webview.html = getWebviewContent(panel, context);
 
 		setTimeout(() => panel.webview.postMessage({ command: "getModelName", text: llm_in_use }), 1000);
-		let responseText = "";
+		let message_list: Message[] = [STYLE_PROMPT,];
 
 		panel.webview.onDidReceiveMessage(async (message) => {
-			switch (message.command) {
-				case "chat": await chat(message);
+			switch (message?.command) {
+				case "chat":
+					console.log("Chat received!");
+					await chat(message);
 					break;
-				case "chatHistory": postResponse(responseText);
+				case "chatHistory":
+					console.log("Retrieving chat history");
+					postResponse(message_list);
 					break;
-				case "chatReset": resetHistory();
+				case "chatReset":
+					resetHistory();
+					console.log("Chat reset!");
 					break;
-				case "getModelName": panel.webview.postMessage({ command: "getModelName", text: llm_in_use });
+				case "getModelName":
+					panel.webview.postMessage({ command: "getModelName", text: llm_in_use });
+					console.log(`Model in use: ${llm_in_use}`);
 					break;
 				case "getModelList":
 					await getModelList()
-						.then(modelList => panel.webview.postMessage({ command: "getModelList", text: modelList.join(",") }));
+						.then(modelList => panel.webview.postMessage({ command: "getModelList", text: modelList?.join(",") }));
 					break;
 				case "selectModel":
-					await selectModel(message.text)
+					await selectModel(message?.text)
 						.then(model => llm_in_use = model)
 						.then(() => panel.webview.postMessage({ command: "getModelName", text: llm_in_use }))
 						.then(() => vscode.window.showInformationMessage(`${llm_in_use} selected.`));
@@ -43,23 +57,44 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 		async function chat(message: any) {
-			let userPrompt = message.text;
-			responseText += `<hr />\n${userPrompt}\n\n`;
 			let thinkingText = '';  // Variable to store text between <think> and </think>
 			let isThinking = false;  // Boolean flag to track if we are inside <think>...</think>
 
-			try {
-				const streamResponse = await ollama.chat({
-					model: llm_in_use,
-					messages: [{ role: "user", content: responseText }],
-					stream: true
-				});
+			let user_message: Message = {
+				role: "user",
+				content: message?.text,
+				images: message?.image, // for image chat in future ver
+			};
+			console.log("Recording user message...");
+			message_list.push(user_message);
+			console.log("User message recorded!");
+			let options = {
+				// temperature: 0.7, // Set the model's creativity level
+				// top_p: 1.0, // Set nucleus sampling (controls diversity)
+				// max_tokens: 150, // Limit the number of tokens (words/characters)
+			};
 
-				for await (const part of streamResponse) {
+			try {
+				// send chat to model
+				console.log("Sending user prompt to model...");
+				const streamResponse = await ollama.chat(
+					{
+						model: llm_in_use,
+						messages: message_list,
+						stream: true,
+						options: options,
+					});
+
+
+				let partialResponse = "";
+				// process response from model
+				console.log("Processing model response...");
+				for await (let part of streamResponse) {
+
 					if (!part.message.content) { continue; }  // Skip empty content
 
 					let content = part.message.content;
-
+					process.stdout.write(`${content}`);
 					// Handle <think> start
 					if (content.includes("<think>")) {
 						isThinking = true;
@@ -76,14 +111,21 @@ export function activate(context: vscode.ExtensionContext) {
 
 					// Add the content to the appropriate variable
 					if (isThinking) {
-						thinkingText += content;  // Inside <think>, add to thinkingText
+						// Inside <think>, add to thinkingText
+						thinkingText += content;
 						postThinking(thinkingText);
 					} else {
-						responseText += content;  // Outside <think>, add to responseText
-						context.workspaceState.update("chatResponse", responseText);
-						postResponse(responseText);
+						// Outside <think>, add to responseText
+						partialResponse += content;
+						postResponse(message_list, partialResponse);
 					}
 				}
+				// add response as context for next query
+				message_list.push({
+					role: "assistant",
+					content: partialResponse,
+				});
+
 			} catch (error) {
 				handleError(error);
 			}
@@ -94,15 +136,17 @@ export function activate(context: vscode.ExtensionContext) {
 			panel.webview.postMessage({ command: "chatThinking", text: htmlResponse });
 		}
 
-		async function postResponse(responseText: string) {
+		async function postResponse(message_list: Message[], partialResponse: string = "") {
+			let responseText = message_list.filter(message => message?.role !== "system").map(message => message?.content).join("<hr/>");
+			responseText += "<hr/>" + partialResponse;
 			const htmlResponse = await marked(responseText.replace(/\\\[/g, '$$$').replace(/\\\]/g, '$$$'));
 			panel.webview.postMessage({ command: "chatResponse", text: htmlResponse });
 		}
 
 		function resetHistory() {
 			context.workspaceState.update("chatResponse", "");
-			responseText = "";
-			postResponse(responseText);
+			message_list = [STYLE_PROMPT,];
+			postResponse(message_list);
 		}
 	});
 
@@ -112,14 +156,18 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() { }
 
 async function getModelList(): Promise<string[]> {
-	const models = await ollama.list();
-	return models.models?.map(model => model.name)?.sort((a, b) => b.localeCompare(a)) || [];
+	let models = await ollama.list();
+	let model_names = models.models?.map(model => model.name)?.sort((a, b) => b.localeCompare(a)) || [];
+	console.log(`Available models: ${model_names.join(", ")}`);
+	return model_names;
 }
 
-async function selectModel(selectedModel: string = ""): Promise<string> {
-	const modelList = await getModelList();
+async function selectModel(selectModelName: string = ""): Promise<string> {
+	let modelList = await getModelList();
 	if (modelList.length === 0) { throw new Error("No models detected in Ollama."); }
-	return selectedModel ? modelList.find(name => name === selectedModel) || modelList[0] : modelList[0];
+	let selectedModelName = selectModelName ? modelList.find(name => name === selectModelName) || modelList[0] : modelList[0];
+	console.log(`Model selected: ${selectedModelName}`);
+	return selectedModelName;
 }
 
 function handleError(error: any) {
