@@ -32,3 +32,5 @@ Thank you [Fireship](https://youtube.com/@beyondfireship?si=zWoZxPfQUvpgsNzJ) fo
   * Dynamically get one of DeepSeek models from user's Ollama
 * 0.0.5
   * Allow user to select which ollama model to use
+* 0.0.6
+  * Add context

@@ -1,4 +1,5 @@
 {
+  "version": "0.0.6",
   "name": "ollama-vsc-chat",
   "displayName": "Ollama VSC Chat",
   "description": "Chat with Ollama models in VSCode",
@@ -6,7 +7,6 @@
     "type": "git",
     "url": "https://github.com/Akimori-236/ollama-vsc-chat.git"
   },
-  "version": "0.0.5",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -42,6 +42,7 @@
     "@typescript-eslint/parser": "^8.17.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
+    "esbuild": "^0.25.0",
     "eslint": "^9.16.0",
     "ts-loader": "^9.5.1",
     "typescript": "^5.7.2",
