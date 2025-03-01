@@ -5,11 +5,25 @@ const vscode = acquireVsCodeApi();
 const promptInput = document.getElementById("promptId");
 const askBtn = document.getElementById("askBtnId");
 const resetBtn = document.getElementById("resetBtnId");
+const stopBtn = document.getElementById("stopBtnId");
 const thinkingContainer = document.getElementById("thinkingId");
 const responseContainer = document.getElementById("responseId");
 const modelContainer = document.getElementById("modelId");
 const form = document.getElementById("questionForm");
 const scrollableElement = document.getElementById('scrollableElement');
+
+
+
+function setupEventListeners() {
+    promptInput.addEventListener("keypress", handleEnterKey);
+    resetBtn.addEventListener("click", resetHistory);
+    stopBtn.addEventListener("click", stopResponse);
+    window.addEventListener("message", handleMessage);
+}
+
+function stopResponse() {
+    vscode.postMessage({ command: 'stopResponse', text: "" });
+}
 
 function askQuestion(event) {
     event.preventDefault();

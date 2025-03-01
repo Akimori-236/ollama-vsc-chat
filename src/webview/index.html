@@ -30,11 +30,6 @@
             if (scrollableElement) scrollableElement.scrollTop = scrollableElement.scrollHeight;
         }
 
-        function setupEventListeners() {
-            promptInput.addEventListener("keypress", handleEnterKey);
-            resetBtn.addEventListener("click", resetHistory);
-            window.addEventListener("message", handleMessage);
-        }
     </script>
 </head>
 
@@ -43,6 +38,7 @@
         <h2 class="text-light">
             Ollama VS Code Extension
             <button class="btn btn-outline-danger" type="button" id="resetBtnId">Reset Chat</button>
+            <button class="btn btn-outline-danger" type="button" id="stopBtnId">Stop</button>
             <span class="badge text-bg-info" id="modelId"></span>
         </h2>
 

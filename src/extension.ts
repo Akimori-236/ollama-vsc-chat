@@ -8,10 +8,16 @@ const STYLE_PROMPT: Message = {
 	role: "system",
 	content: "Please respond in a friendly and helpful manner.",
 };
+const OLLAMA_OPTIONS = {
+	// temperature: 0.7, // Set the model's creativity level
+	// top_p: 1.0, // Set nucleus sampling (controls diversity)
+	// max_tokens: 150, // Limit the number of tokens (words/characters)
+};
+
+
 
 export function activate(context: vscode.ExtensionContext) {
-	let llm_in_use: string = "";
-
+	var llm_in_use: string = "";
 	selectModel().then(model => llm_in_use = model).catch(handleError);
 
 	console.log('"ollama-vsc-chat" is now active!');
@@ -21,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
 		panel.webview.html = getWebviewContent(panel, context);
 
 		setTimeout(() => panel.webview.postMessage({ command: "getModelName", text: llm_in_use }), 1000);
-		let message_list: Message[] = [STYLE_PROMPT,];
+		var message_list: Message[] = [STYLE_PROMPT,];
 
 		panel.webview.onDidReceiveMessage(async (message) => {
 			switch (message?.command) {
@@ -51,12 +57,19 @@ export function activate(context: vscode.ExtensionContext) {
 						.then(() => panel.webview.postMessage({ command: "getModelName", text: llm_in_use }))
 						.then(() => vscode.window.showInformationMessage(`${llm_in_use} selected.`));
 					break;
+				case "stopResponse":
+					console.log("Stopping response...");
+					isStopResponse = true;
+					break;
 				default: vscode.window.showErrorMessage("Unsupported message type.");
 					break;
 			}
 		});
 
+		var isStopResponse = false;
+
 		async function chat(message: any) {
+			isStopResponse = false;
 			let thinkingText = '';  // Variable to store text between <think> and </think>
 			let isThinking = false;  // Boolean flag to track if we are inside <think>...</think>
 
@@ -68,11 +81,6 @@ export function activate(context: vscode.ExtensionContext) {
 			console.log("Recording user message...");
 			message_list.push(user_message);
 			console.log("User message recorded!");
-			let options = {
-				// temperature: 0.7, // Set the model's creativity level
-				// top_p: 1.0, // Set nucleus sampling (controls diversity)
-				// max_tokens: 150, // Limit the number of tokens (words/characters)
-			};
 
 			try {
 				// send chat to model
@@ -82,7 +90,7 @@ export function activate(context: vscode.ExtensionContext) {
 						model: llm_in_use,
 						messages: message_list,
 						stream: true,
-						options: options,
+						options: OLLAMA_OPTIONS,
 					});
 
 
@@ -90,7 +98,7 @@ export function activate(context: vscode.ExtensionContext) {
 				// process response from model
 				console.log("Processing model response...");
 				for await (let part of streamResponse) {
-
+					if (isStopResponse) { break; }
 					if (!part.message.content) { continue; }  // Skip empty content
 
 					let content = part.message.content;
@@ -104,7 +112,7 @@ export function activate(context: vscode.ExtensionContext) {
 					// Handle </think> end
 					if (content.includes("</think>")) {
 						isThinking = false;
-						const endContent = content.split("</think>")[0];  // Get content before </think>
+						let endContent = content.split("</think>")[0];  // Get content before </think>
 						thinkingText += endContent;  // Add to thinkingText
 						content = content.split("</think>")[1] || '';  // Get any remaining content after </think>
 					}
@@ -132,14 +140,14 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		async function postThinking(thinkingText: string) {
-			const htmlResponse = await marked(thinkingText.replace(/\\\[/g, '$$$').replace(/\\\]/g, '$$$'));
+			let htmlResponse = await marked(thinkingText.replace(/\\\[/g, '$$$').replace(/\\\]/g, '$$$'));
 			panel.webview.postMessage({ command: "chatThinking", text: htmlResponse });
 		}
 
 		async function postResponse(message_list: Message[], partialResponse: string = "") {
 			let responseText = message_list.filter(message => message?.role !== "system").map(message => message?.content).join("<hr/>");
 			responseText += "<hr/>" + partialResponse;
-			const htmlResponse = await marked(responseText.replace(/\\\[/g, '$$$').replace(/\\\]/g, '$$$'));
+			let htmlResponse = await marked(responseText.replace(/\\\[/g, '$$$').replace(/\\\]/g, '$$$'));
 			panel.webview.postMessage({ command: "chatResponse", text: htmlResponse });
 		}
 
